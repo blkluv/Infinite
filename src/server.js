@@ -10,7 +10,7 @@ const { join } = require("path");
 const prompt = require("@themaximalist/prompt.js");
 const Database = require("./database");
 const controllers = require("./controllers");
-const { verify_user, optional_user, verify_admin } = require("./middleware");
+const { verify_user, optional_user, verify_admin, check_mobile } = require("./middleware");
 
 class Server {
     constructor() {
@@ -22,6 +22,7 @@ class Server {
         this.app.use(express.urlencoded({ extended: true }));
         this.app.use(cookieParser(process.env.COOKIE_SECRET));
         this.app.use(express.static("public"));
+        this.app.use(check_mobile);
         this.app.locals = {
             NODE_ENV: process.env.NODE_ENV,
             SITE_URL: process.env.SITE_URL,
@@ -45,6 +46,7 @@ class Server {
         this.app.get("/api/art/generate", optional_user, controllers.art.generate);
         this.app.post("/api/chat/:slug/start", optional_user, controllers.chats.start);
         this.app.post("/api/chat", optional_user, controllers.chats.chat);
+        this.app.post("/api/radio/generate", optional_user, controllers.radio.generate);
         this.app.post("/api/account", verify_user, controllers.users.account_update);
         this.app.get("/api/games", optional_user, controllers.games.get_games);
 
@@ -58,6 +60,7 @@ class Server {
 
         this.app.get("/admin", verify_user, verify_admin, controllers.admin.index);
 
+        this.app.get("/privacy", optional_user, controllers.site.privacy);
         this.app.get("/games", optional_user, controllers.games.games_index);
         this.app.get("/generate", optional_user, controllers.games.generate_handler);
         this.app.get("/articles", optional_user, controllers.site.articles);
